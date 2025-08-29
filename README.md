@@ -27,11 +27,11 @@ chatgpt-proxy-docker/
 2. Правьте docker-compose.yml, задав DOMAIN и EMAIL
 3. Получите первый сертификат:
 ```bash
-docker-compose run --rm certbot-init
+docker compose run --rm certbot-init
 ```
 4. Запустите сервисы:
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
 5. Проверьте работу: https://myproxy.example.com
 
@@ -41,17 +41,17 @@ docker-compose up -d
 - Если сертификат обновлен → Nginx автоматически перезагружается
 - Проверить тестовое обновление вручную:
 ```bash
-docker-compose run --rm certbot renew --dry-run
+docker compose run --rm certbot renew --dry-run
 ```
 
 ## Перезапуск
 
 ```bash
-docker-compose restart
+docker compose restart
 ```
 
 Логи:
 ```bash
-docker-compose logs -f nginx
-docker-compose logs -f certbot
+docker compose logs -f nginx
+docker compose logs -f certbot
 ```
