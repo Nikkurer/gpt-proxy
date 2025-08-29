@@ -2,54 +2,36 @@ server {
     listen 80;
     server_name ${DOMAIN};
 
+    root /var/www/certbot;
     location /.well-known/acme-challenge/ {
-        root /var/www/certbot;
+        allow all;
     }
 
-    return 301 https://$host$request_uri;
+    location / {
+        return 301 https://$host$request_uri;
+    }
 }
 
 server {
-    listen 443 ssl http2;
+    listen 443 ssl;
     server_name ${DOMAIN};
 
-    ssl_certificate     /etc/letsencrypt/live/${DOMAIN}/fullchain.pem;
+    ssl_certificate /etc/letsencrypt/live/${DOMAIN}/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/${DOMAIN}/privkey.pem;
-
-    ssl_protocols       TLSv1.2 TLSv1.3;
-    ssl_ciphers         HIGH:!aNULL:!MD5;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers HIGH:!aNULL:!MD5;
 
     location / {
         proxy_pass https://chatgpt.com;
-        proxy_ssl_server_name on;
         proxy_set_header Host chatgpt.com;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
-
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-
-        sub_filter_once off;
-        sub_filter_types text/html text/css application/javascript;
-        sub_filter "https://chatgpt.com" "https://${DOMAIN}";
-        sub_filter "https://api.chatgpt.com" "https://${DOMAIN}/api";
-        sub_filter "https://auth.chatgpt.com" "https://${DOMAIN}/auth";
-        sub_filter "https://cdn.chatgpt.com" "https://${DOMAIN}/cdn";
     }
 
-    location ~ ^/(.+?)/ {
-        set $subdomain $1;
-        proxy_pass https://$subdomain.chatgpt.com/;
-        proxy_ssl_server_name on;
-        proxy_set_header Host $subdomain.chatgpt.com;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+        allow all;
     }
 }
+

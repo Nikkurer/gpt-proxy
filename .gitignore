@@ -1,0 +1,4 @@
+certs/
+certbot-logs/
+webroot/
+default.conf
