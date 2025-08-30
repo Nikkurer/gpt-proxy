@@ -125,7 +125,7 @@ envsubst '$${DOMAIN}' < ./nginx.conf.template > ./default.conf
 Запуск:
 
 ```bash
-export DOMAIN=gpt.trifonov.pw
+export DOMAIN=your-domain
 sh generate-nginx-config.sh
 ```
 
