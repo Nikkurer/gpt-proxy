@@ -1,8 +1,12 @@
+# Nginx template for ChatGPT proxy
+
+# HTTP server for ACME challenge and redirect to HTTPS
 server {
     listen 80;
     server_name ${DOMAIN};
 
     root /var/www/certbot;
+
     location /.well-known/acme-challenge/ {
         allow all;
     }
@@ -12,6 +16,7 @@ server {
     }
 }
 
+# HTTPS server
 server {
     listen 443 ssl;
     server_name ${DOMAIN};
@@ -20,18 +25,39 @@ server {
     ssl_certificate_key /etc/letsencrypt/live/${DOMAIN}/privkey.pem;
     ssl_protocols TLSv1.2 TLSv1.3;
     ssl_ciphers HIGH:!aNULL:!MD5;
+    ssl_prefer_server_ciphers on;
 
-    location / {
-        proxy_pass https://chatgpt.com;
-        proxy_set_header Host chatgpt.com;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
+    # Resolver for proxy_pass, force IPv4
+    resolver 8.8.8.8 ipv6=off;
 
     location /.well-known/acme-challenge/ {
         root /var/www/certbot;
         allow all;
+    }
+
+    location / {
+        proxy_pass https://chatgpt.com;
+
+        # TLS settings for upstream
+        proxy_ssl_server_name on;
+        proxy_ssl_protocols TLSv1.2 TLSv1.3;
+        proxy_ssl_ciphers HIGH:!aNULL:!MD5;
+        proxy_ssl_trusted_certificate /etc/ssl/certs/ca-certificates.crt;
+
+        # Forward headers
+        proxy_set_header Host chatgpt.com;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        # Optional: improve proxy performance
+        proxy_http_version 1.1;
+        proxy_set_header Connection "";
+	# Set buffers size
+	proxy_buffer_size          128k;
+    	proxy_buffers              4 256k;
+    	proxy_busy_buffers_size    256k;
+    	proxy_buffering            on;
     }
 }
 
